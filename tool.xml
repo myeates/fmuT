@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<run>
+    <tool>
+        <title>Compute the chemical potential of a fermion vs. T</title>
+        <about>Press Simulate to view results.</about>
+        <command> @tool/main @driver</command>
+    </tool>
+    <input>
+        <string id="name">
+            <about>
+               <label>Fermion name</label>
+               <description>
+                 Name of the fermion.
+               </description>
+            </about>
+            <default>Electron</default>
+        </string>
+        <number id="mass">
+            <about>
+               <label>Rest Mass (MeV)</label>
+               <description>
+                 Rest mass energy (in MeV) of the fermion.
+               </description>
+            </about>
+            <default>0.511</default>
+            <min>0</min>
+            <max>1.e15</max>
+        </number>
+        <number id="multiplicity">
+            <about>
+               <label>Multiplicity</label>
+               <description>
+                 Multiplicity (2 times the spin + 1) of the fermion.
+               </description>
+            </about>
+            <default>2</default>
+            <min>2</min>
+            <max>100000</max>
+        </number>
+        <number id="charge">
+            <about>
+               <label>Charge</label>
+               <description>
+                 Charge (in units of the fundamental charge) of the fermion.
+               </description>
+            </about>
+            <default>-1</default>
+            <min>-1</min>
+            <max>1</max>
+        </number>
+        <number id="min">
+            <about>
+               <label>Low T (K)</label>
+               <description>
+                 Lowest temperature (in Kelvins) at which to compute the
+                 fermion chemical potential.
+               </description>
+            </about>
+            <default>1.e5</default>
+            <min>1.e-6</min>
+            <max>1.e15</max>
+        </number>
+        <number id="max">
+            <about>
+               <label>High T (K)</label>
+               <description>
+                 Highest temperature (in Kelvins) at which to compute the
+                 fermion chemical potential.
+               </description>
+            </about>
+            <default>1.e9</default>
+            <min>1.e-6</min>
+            <max>1.e15</max>
+        </number>
+        <number id="n">
+            <about>
+               <label>n (per cc)</label>
+               <description>
+                 Number density (per cubic centimeter) at which to compute the
+                 fermion chemical potential.
+               </description>
+            </about>
+            <default>1.e20</default>
+            <min>1.e-40</min>
+            <max>1.e40</max>
+        </number>
+    </input>
+</run>
