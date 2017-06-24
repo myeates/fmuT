@@ -4,13 +4,16 @@
 //  redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 // ======================================================================
 
-#include "rappture.h"
+#include <string>
+#include <sstream>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <iostream>
-#include <sstream>
-#include <Libstatmech.h>
 
+#include "Libstatmech.h"
+#include "rappture.h"
 
 #ifdef DEBUG
 static int debug = 1;

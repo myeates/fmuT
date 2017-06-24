@@ -39,7 +39,7 @@ LIBSTATMECH_URL = $(SOURCEFORGE_URL)/libstatmech/files/libstatmech
 
 LIBSTATMECHDIR = $(VENDORDIR)/libstatmech/$(LIBSTATMECH_VERSION)/src
 
-BOOST_DIR = ./
+BOOST_DIR = /usr/include/boost
 
 VALGRIND= yes
 PROFILE= no
@@ -151,7 +151,7 @@ clean:
 clean_dist:
 	rm -fr $(VENDORDIR)
 
-clean_all: clean clean_dist
+clean_all: clean
 
 clean_data:
 	rm -fr $(DATA_DIR)
