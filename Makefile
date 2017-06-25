@@ -1,8 +1,8 @@
 # simple makefile for a Rappture-based program
 
 RAPPTURE_DIR	= /home/ubuntu/tools/rappture
-INCLUDES	= -I$(RAPPTURE_DIR)/include -I$(VENDORDIR)/libstatmech/0.8/src
-INCLUDES2	= -I/usr/include -I/usr/include/libxml2/ $(INCLUDES)
+INCLUDES2	= -I$(RAPPTURE_DIR)/include -I$(VENDORDIR)/libstatmech/0.8/src
+INCLUDES	= -I/usr/include -I/usr/include/libxml2 $(INCLUDES2)
 LIBS		= -L$(RAPPTURE_DIR)/lib -lrappture -lm
 
 VENDORDIR = ./vendor
@@ -12,11 +12,9 @@ include Makefile.inc
 
 all: main
 
-main: main.cpp 
-	$(CXX) -c $(CFLAGS) $< $(INCLUDES2) -o $@ $(LIBS) $(CLIBS)
+main: main.cpp $(WN_OBJ)
+	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@ $(WN_OBJ) $(LIBS) $(CLIBS)
 
-vendor: $(WN_OBJ)
-	$(CC) $(CFLAGS) $(WN_OBJ) $(INCLUDES) $< -o $@ $(LIBS) $(CLIBS) -DDEBUG
 clean_runs:
 	$(RM) run*.xml driver*.xml
 

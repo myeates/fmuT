@@ -39,7 +39,7 @@ LIBSTATMECH_URL = $(SOURCEFORGE_URL)/libstatmech/files/libstatmech
 
 LIBSTATMECHDIR = $(VENDORDIR)/libstatmech/$(LIBSTATMECH_VERSION)/src
 
-BOOST_DIR = /usr/include/boost
+BOOST_DIR = ./
 
 VALGRIND= yes
 PROFILE= no
@@ -128,11 +128,7 @@ VENDOR_DIR := $(shell mkdir -p $(VENDORDIR))
 # Build dependencies.
 #===============================================================================
 
-$(VENDORDIR)/libstatmech.tar.gz:
-	wget $(LIBSTATMECH_URL)/libstatmech_$(LIBSTATMECH_VERSION).tar.gz -O $@
-
 $(OBJDIR)/Libstatmech.o: $(VENDORDIR)/libstatmech.tar.gz 
-	tar xz -C $(VENDORDIR) -f $<
 	$(CC) -c $(LIBSTATMECHDIR)/Libstatmech.c -o $@
 
 #--------------------------------------------------------------------------

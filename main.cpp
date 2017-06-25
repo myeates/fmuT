@@ -4,16 +4,14 @@
 //  redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 // ======================================================================
 
-#include <string>
-#include <sstream>
+#include "rappture.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include <iostream>
-
+#include <sstream>
 #include "Libstatmech.h"
-#include "rappture.h"
+
 
 #ifdef DEBUG
 static int debug = 1;
@@ -21,7 +19,7 @@ static int debug = 1;
 static int debug = 0;
 #endif
 
-int main(int argc, char * argv[])
+int main(int argc, char ** argv)
 {
 
     RpLibrary* lib = NULL;
@@ -29,10 +27,9 @@ int main(int argc, char * argv[])
     Libstatmech__Fermion *p_fermion;
 
     std::string filePath = "";
-    std::string xmltext = "";
+    const char** xmltext = NULL;
     std::string s_title = "";
-    double fmin, fmax, d_n;
-    std::string strFormula = "";
+    double* fmin = NULL; double* fmax = NULL; double* d_n = NULL;
     int i;
 
     if (argc < 2) {
@@ -46,12 +43,10 @@ int main(int argc, char * argv[])
     }
 
     // create a rappture library from the file filePath
-    lib = new RpLibrary(filePath);
+    lib = rpLibrary(argv[1]);
 
-    if (lib) {
-        if(debug) {
+    if (lib != NULL) {
             std::cout << "created Rappture Library successfully" << std::endl;
-        }
     }
     else {
         // cannot open file or out of memory
@@ -60,91 +55,65 @@ int main(int argc, char * argv[])
     }
 
     // get the xml that is stored in the rappture library lib
-    xmltext = lib->xml();
-
-    if(! (xmltext.empty()) ) {
-        if(debug) {
-        //printf("XML file content:\n");
-        //printf("%s\n", xmltext);
-    }
-    }
-    else {
-        printf("lib->xml() failed\n");
-        delete lib;
-        exit(1);
-    }
+    rpXml(lib,xmltext);
 
     // get the min
-    xmltext = lib->getString("input.number(min).current");
-
-    if ( xmltext.empty() ) {
+    rpGetString(lib,"input.number(min).current",xmltext);
+    std::string xmlstr = *xmltext;
+    if (xmlstr.empty()) {
         std::cout << "lib->getString(input.number(xmin).current) returns null" << std::endl;
         delete lib;
         exit(1);
     }
 
     if(debug) {
-        std::cout << "xml min :" << xmltext << ": len=" << xmltext.size() << std::endl;
+        std::cout << "xml min :" << xmlstr << ": len=" << xmlstr.size() << std::endl;
     }
 
     // grab a double value from the xml
-    fmin = lib->getDouble("input.number(min).current");
+    rpGetDouble(lib,"input.number(min).current",fmin);
 
     if(debug) {
         std::cout << "min: " << fmin << std::endl;
     }
 
     // get the max
-    fmax = lib->getDouble("input.(max).current");
+    rpGetDouble(lib,"input.(max).current",fmax);
+
     if(debug) {
         std::cout << "max: " << fmax << std::endl;
     }
 
-    if( fmin >= fmax )
-    {
+    if(*fmin >= *fmax) {
       std::cout << "Max T must be greater than minimum T!" << std::endl;
       exit( EXIT_FAILURE );
     }
 
     // create the fermion
+    const char** fermName = NULL;
+    double* fermMass = NULL; double* fermMult = NULL; double* fermCharge = NULL;
+    rpGetString(lib,"input.(name).current",fermName);
+    rpGetDouble(lib,"input.(mass).current",fermMass);
+    rpGetDouble(lib,"input.(multiplicity).current",fermMult);
+    rpGetDouble(lib,"input.(charge).current",fermCharge);
     p_fermion =
-      Libstatmech__Fermion__new(
-        (lib->getString("input.(name).current")).c_str(),
-        lib->getDouble("input.(mass).current"),
-        (unsigned int) lib->getDouble("input.(multiplicity).current"),
-        (int) lib->getDouble("input.(charge).current")
-      );
+     Libstatmech__Fermion__new(*fermName,*fermMass,(unsigned int) *fermMult,(int) *fermCharge);
 
     // get the number density
-    d_n = lib->getDouble( "input.(n).current" );
+    rpGetDouble(lib,"input.(n).current",d_n);
 
     // label the graph with a title
-    s_title.append( (lib->getString("input.(name).current")).c_str() );
-    s_title.append( " Chemical Potential" );
-    lib->put(
-      "output.curve(result).about.label",
-      s_title.c_str(),"",RPLIB_OVERWRITE
-    );
+    s_title.append(*fermName); s_title.append(" Chemical Potential");
+    const char* stitle = s_title.c_str();
+    rpPutString(lib,"output.curve(result).about.label",stitle,0);
 
     // label the xaxis
-    lib->put(
-      "output.curve(result).xaxis.label",
-      "Temperature","",RPLIB_OVERWRITE
-    );
-    lib->put(
-      "output.curve(result).xaxis.units",
-      "K","",RPLIB_OVERWRITE
-    );
-    lib->put(
-      "output.curve(result).xaxis.scale",
-      "log","",RPLIB_OVERWRITE
-    );
+    rpPutString(lib,"output.curve(result).xaxis.label","Temperature",0);
+    rpPutString(lib,"output.curve(result).xaxis.units","K",0);
+    rpPutString(lib,"output.curve(result).xaxis.scale","log",0);
 
     // label the yaxis
-    lib->put(
-      "output.curve(result).yaxis.label",
-      "Chemical Potential / kT","",RPLIB_OVERWRITE
-    );
+    rpPutString(lib,"output.curve(result).yaxis.label","Chemical Potential / kT",0);
 
     // evaluate formula and generate results
     // science begins here
@@ -156,30 +125,18 @@ int main(int argc, char * argv[])
     for (i = 0; i<=npts; i++) {
         std::cout << i << std::endl;
         fx =
-          pow(
-            10.,
-            log10( fmin ) + i * ( log10( fmax ) - log10( fmin ) ) / npts
-          );
+          pow(10.,log10(*fmin)+i*(log10(*fmax)-log10(*fmin) / npts));
         fy =
-          Libstatmech__Fermion__computeChemicalPotential(
-            p_fermion,
-            fx,
-            d_n,
-            NULL,
-            NULL
-          );
+          Libstatmech__Fermion__computeChemicalPotential(p_fermion, fx, *d_n, NULL, NULL);
         myStr << fx << " " << fy << std::endl;
-        lib->put(
-          "output.curve(result).component.xy",
-          myStr.str(),
-          "",
-          RPLIB_APPEND
-        );
+        const char* myChar = myStr.str().c_str();
+        rpPutString(lib,"output.curve(result).component.xy",myChar,1);
         myStr.str("");
     }
 
     // write output to run file and signal
-    lib->result();
+    rpResult(lib);
+    rpFreeLibrary(&lib);
 
     Libstatmech__Fermion__free( p_fermion );
 
