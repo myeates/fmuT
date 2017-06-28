@@ -147,8 +147,6 @@ clean:
 clean_dist:
 	rm -fr $(VENDORDIR)
 
-clean_all: clean
-
 clean_data:
 	rm -fr $(DATA_DIR)
 

@@ -1,6 +1,6 @@
 # simple makefile for a Rappture-based program
 
-RAPPTURE_DIR	= /home/ubuntu/tools/rappture
+RAPPTURE_DIR	= /home/myeates/local/rappture/20130903
 INCLUDES2	= -I$(RAPPTURE_DIR)/include -I$(VENDORDIR)/libstatmech/0.8/src
 INCLUDES	= -I/usr/include -I/usr/include/libxml2 $(INCLUDES2)
 LIBS		= -L$(RAPPTURE_DIR)/lib -lrappture -lm

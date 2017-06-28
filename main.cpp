@@ -22,15 +22,19 @@ static int debug = 0;
 int main(int argc, char ** argv)
 {
 
-    RpLibrary* lib = NULL;
+    RpLibrary* lib;
 
     Libstatmech__Fermion *p_fermion;
-
+    
     std::string filePath = "";
-    const char** xmltext = NULL;
     std::string s_title = "";
-    double* fmin = NULL; double* fmax = NULL; double* d_n = NULL;
+    std::string xmlstr = "";
+    std::stringstream myStr;
+    const char* xmltext = "";
+    const char* fermName = "";
+    double fx, fy, fmin, fmax, d_n, fermMass, fermMult, fermCharge;
     int i;
+    int npts = 100;
 
     if (argc < 2) {
         std::cout << "usage: " << argv[0] << " driver.xml" << std::endl;
@@ -55,11 +59,23 @@ int main(int argc, char ** argv)
     }
 
     // get the xml that is stored in the rappture library lib
-    rpXml(lib,xmltext);
+    rpXml(lib,&xmltext);
+    xmlstr = *xmltext;
+    if(! (xmlstr.empty()) ) {
+      if(debug) {
+        //printf("XML file content:\n");
+        //printf("%s\n", xmltext);
+      }
+    }
+    else {
+      printf("lib->xml() failed\n");
+      delete lib;
+      exit(1);
+    }
 
     // get the min
-    rpGetString(lib,"input.number(min).current",xmltext);
-    std::string xmlstr = *xmltext;
+    rpGetString(lib,"input.number(min).current",&xmltext);
+    xmlstr = *xmltext;
     if (xmlstr.empty()) {
         std::cout << "lib->getString(input.number(xmin).current) returns null" << std::endl;
         delete lib;
@@ -71,39 +87,43 @@ int main(int argc, char ** argv)
     }
 
     // grab a double value from the xml
-    rpGetDouble(lib,"input.number(min).current",fmin);
+    rpGetDouble(lib,"input.number(min).current",&fmin);
 
     if(debug) {
         std::cout << "min: " << fmin << std::endl;
     }
 
     // get the max
-    rpGetDouble(lib,"input.(max).current",fmax);
+    rpGetDouble(lib,"input.(max).current",&fmax);
 
     if(debug) {
         std::cout << "max: " << fmax << std::endl;
     }
 
-    if(*fmin >= *fmax) {
+    if(fmin >= fmax) {
       std::cout << "Max T must be greater than minimum T!" << std::endl;
       exit( EXIT_FAILURE );
     }
 
     // create the fermion
-    const char** fermName = NULL;
-    double* fermMass = NULL; double* fermMult = NULL; double* fermCharge = NULL;
-    rpGetString(lib,"input.(name).current",fermName);
-    rpGetDouble(lib,"input.(mass).current",fermMass);
-    rpGetDouble(lib,"input.(multiplicity).current",fermMult);
-    rpGetDouble(lib,"input.(charge).current",fermCharge);
+    rpGetString(lib,"input.(name).current",&fermName);
+    rpGetDouble(lib,"input.(mass).current",&fermMass);
+    rpGetDouble(lib,"input.(multiplicity).current",&fermMult);
+    rpGetDouble(lib,"input.(charge).current",&fermCharge);
     p_fermion =
-     Libstatmech__Fermion__new(*fermName,*fermMass,(unsigned int) *fermMult,(int) *fermCharge);
+      Libstatmech__Fermion__new(
+	fermName,
+	fermMass,
+	(unsigned int) fermMult,
+	(int) fermCharge
+      );
 
     // get the number density
-    rpGetDouble(lib,"input.(n).current",d_n);
+    rpGetDouble(lib,"input.(n).current",&d_n);
 
     // label the graph with a title
-    s_title.append(*fermName); s_title.append(" Chemical Potential");
+    s_title.append(fermName);
+    s_title.append(" Chemical Potential");
     const char* stitle = s_title.c_str();
     rpPutString(lib,"output.curve(result).about.label",stitle,0);
 
@@ -117,19 +137,19 @@ int main(int argc, char ** argv)
 
     // evaluate formula and generate results
     // science begins here
-
-    double fx, fy;
-    int npts = 100;
-    std::stringstream myStr;
+    std::string myString = "";
 
     for (i = 0; i<=npts; i++) {
-        std::cout << i << std::endl;
-        fx =
-          pow(10.,log10(*fmin)+i*(log10(*fmax)-log10(*fmin) / npts));
+      std::cout << i << std::endl;
+	fx =
+          pow(10.,log10(fmin)+i*(log10(fmax)-log10(fmin) / npts));
         fy =
-          Libstatmech__Fermion__computeChemicalPotential(p_fermion, fx, *d_n, NULL, NULL);
+          Libstatmech__Fermion__computeChemicalPotential(
+	    p_fermion, fx, d_n, NULL, NULL
+	  );
         myStr << fx << " " << fy << std::endl;
-        const char* myChar = myStr.str().c_str();
+        myString = myStr.str();
+	const char* myChar = myString.c_str();
         rpPutString(lib,"output.curve(result).component.xy",myChar,1);
         myStr.str("");
     }
