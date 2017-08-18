@@ -142,7 +142,7 @@ int main(int argc, char ** argv)
     for (i = 0; i<=npts; i++) {
       std::cout << i << std::endl;
 	fx =
-          pow(10.,log10(fmin)+i*(log10(fmax)-log10(fmin) / npts));
+          pow(10.,log10(fmin)+i*(log10(fmax)-log10(fmin)) / npts);
         fy =
           Libstatmech__Fermion__computeChemicalPotential(
 	    p_fermion, fx, d_n, NULL, NULL
